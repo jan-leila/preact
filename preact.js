@@ -65,14 +65,22 @@ class RenderContext {
         return node.element;
     }
 
+    cleanup(node){
+        node.effects.forEach((cleanup) => {
+            cleanup();
+        });
+        node.children.forEach(this.cleanup);
+    }
+
     renderNode(node, props, children){
         node.effect_pointer = 0;
         node.state_pointer = 0;
         for(let prop in props){
             node.element[prop] = props[prop];
         }
-        if(children.length !== node.children.length){
-            // TODO: figure out who owns what child and remove and create nodes based on that
+        // do this better so its more deterministic
+        if(children.length < node.children.length){
+            node.children(children.length).forEach(this.cleanup);
         }
 
         let child_elements = children.map((child, i) => {
