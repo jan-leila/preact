@@ -37,15 +37,18 @@ class RenderContext {
     }
 
     normalizeChild(child, node = {}){
+        if(child === undefined){
+            return '';
+        }
         if(typeof child === 'string'){
             return child;
         }
         if(typeof child === 'function'){
-            return this.normalizeChild(child({}));
+            return this.normalizeChild(child({}, []), node);
         }
         let [ tag, props, children ] = child;
         if(typeof tag === 'function'){
-            return this.normalizeChild(tag(props, children));
+            return this.normalizeChild(tag(props, children), node);
         }
         return this.createNode(node, tag, props, children);
     }
@@ -79,7 +82,7 @@ class RenderContext {
         }
         // TODO: do this better so its more deterministic (keys)
         if(children.length < node.children.length){
-            node.children(children.length).forEach(this.cleanup);
+            node.children.splice(children.length).forEach(this.cleanup);
         }
 
         let child_elements = children.map((child, i) => {
@@ -135,7 +138,8 @@ function useState(default_value){
     let pointer = node.state_pointer;
     node.state_pointer++;
 
-    let value = node.states[pointer] || default_value;
+    let current = node.states[pointer];
+    let value = current != undefined ? current : default_value;
 
     let set_value = async (new_value, after) => {
         if(typeof new_value === 'function'){
@@ -143,7 +147,9 @@ function useState(default_value){
         }
         node.states[pointer] = new_value;
         context.render(node_context);
-        after();
+        if(after){
+            after(node.states[pointer]);
+        }
     }
 
     return [ value, set_value ];
@@ -151,11 +157,12 @@ function useState(default_value){
 
 function useEffect(effect, dependencies){
     let node = RenderContext.active_context.active_node_context.node;
-    let target_effect = node.effects[node.effect_pointer] || {};
+    let current = node.effects[node.effect_pointer];
+    let target_effect = current != undefined ? current : {};
     node.effects[node.effect_pointer] = {
         effect,
         dependencies,
-        run: dependencies === undefined || !objEqual(dependencies, target_effect.dependencies),
+        run: (dependencies === undefined && target_effect.cleanup) || (Array.isArray(dependencies) && !objEqual(dependencies, target_effect.dependencies)),
         cleanup: target_effect.cleanup,
     }
     node.effect_pointer++;
