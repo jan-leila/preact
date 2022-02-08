@@ -18,8 +18,7 @@ function objEqual(a, b){
     return true;
 }
 
-let id_counter;
-
+let id_counter = 0;
 class RenderContext {
     static active_context;
 
@@ -138,9 +137,13 @@ function useState(default_value){
 
     let value = node.states[pointer] || default_value;
 
-    let set_value = (value) => {
-        node.states[pointer] = value;
+    let set_value = async (new_value, after) => {
+        if(typeof new_value === 'function'){
+            new_value = await new_value(value);
+        }
+        node.states[pointer] = new_value;
         context.render(node_context);
+        after();
     }
 
     return [ value, set_value ];
