@@ -71,13 +71,13 @@ class RenderContext {
         node.children.forEach(this.cleanup);
     }
 
-    renderNode(node, props, children){
+    renderNode(node, props = {}, children = []){
         node.effect_pointer = 0;
         node.state_pointer = 0;
         for(let prop in props){
             node.element[prop] = props[prop];
         }
-        // do this better so its more deterministic
+        // TODO: do this better so its more deterministic (keys)
         if(children.length < node.children.length){
             node.children(children.length).forEach(this.cleanup);
         }
@@ -218,37 +218,3 @@ const Preact = {
         context.render(node);
     },
 }
-
-function App(){
-
-    let [ value, set_value ] = useState(0);
-    let [ value2, set_value2 ] = useState(0);
-
-    useEffect(() => {
-        console.log('render');
-    });
-
-    useEffect(() => {
-        console.log('only on 2');
-        return () => {
-            console.log('cleanup 2');
-        }
-    }, [ value2 ]);
-
-    return ['div', {}, [
-        ['button', {
-            onclick: () => {
-                set_value(value + 1);
-            },
-        }, ['click me']],
-        ['div', {}, [`${value}`]],
-        ['button', {
-            onclick: () => {
-                set_value2(value2 + 1);
-            },
-        }, ['click me']],
-        ['div', {}, [`${value2}`]],
-    ]];
-}
-
-Preact.bind(root, App);
