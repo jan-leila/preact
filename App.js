@@ -1,33 +1,30 @@
 
 function App() {
 
-    let [value, set_value] = useState(0);
-    let [value2, set_value2] = useState(0);
-
-    useEffect(() => {
-        console.log('render');
-    });
-
-    useEffect(() => {
-        console.log('only on 2');
-        return () => {
-            console.log('cleanup 2');
-        }
-    }, [value2]);
-
     return ['div', {}, [
-        ['button', {
-            onclick: () => {
-                set_value(value + 1);
-            },
-        }, ['click me']],
-        ['div', {}, [`${value}`]],
-        ['button', {
-            onclick: () => {
-                set_value2(value2 + 1);
-            },
-        }, ['click me']],
-        ['div', {}, [`${value2}`]],
+        [Routes, {}, [
+            [Route, {
+                path: '/1',
+                element: [ 'div', {}, [ 'page 1' ]],
+            }],
+            [Route, {
+                path: '/2',
+                element: [ 'div', {}, [ 'page 2' ]],
+            }],
+            [Route, {
+                path: '/3',
+                element: [ 'div', {}, [ 'page 3' ]],
+            }],
+            [Route, {
+                path: '*',
+                element: [ 'div', {}, [ 'wild card' ]],
+            }],
+        ]],
+        [Link, { to: '/1' }, [ 'link1' ]],
+        [Link, { to: '/2' }, [ 'link2' ]],
+        [Link, { to: '/3' }, [ 'link3' ]],
+        [Link, { to: '/' }, [ 'root' ]],
+        [Link, { to: '/wow/this/is/cool' }, [ 'some random place' ]],
     ]];
 }
 
